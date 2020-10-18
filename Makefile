@@ -15,3 +15,6 @@ coverage:
 		$(GOCMD) tool cover -html=reports/coverage.out
 clean:
 		$(GOCMD) clean
+run: build
+		@./csvtoynab
+		@$(MAKE) clean
