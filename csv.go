@@ -3,31 +3,21 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/gocarina/gocsv"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
-)
 
-type INGExport struct {
-	Datum            int    `csv:"Datum"`
-	NaamOmschrijving string `csv:"Naam / Omschrijving"`
-	Rekening         string `csv:"Rekening"`
-	Tegenrekening    string `csv:"Tegenrekening"`
-	Code             string `csv:"Code"`
-	AfBij            string `csv:"Af Bij"`
-	BedragEUR        string `csv:"Bedrag (EUR)"`
-	Mutatiesoort     string `csv:"Mutatiesoort"`
-	Mededelingen     string `csv:"Mededelingen"`
-	SaldoNaMutatie   string `csv:"Saldo na mutatie"`
-	Tag              string `csv:"Tag"`
-}
+	"github.com/gocarina/gocsv"
+	"go.bmvs.io/ynab/api"
+	"go.bmvs.io/ynab/api/transaction"
+)
 
 var errFailedToGetPath error = fmt.Errorf("failed to get path")
 
-func getLines(account string, path string) ([]*INGExport, error) {
+func getLines(account, path string) ([]*INGExport, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, errFailedToGetPath
 	}
@@ -75,4 +65,61 @@ func visit(files *[]string) filepath.WalkFunc {
 		*files = append(*files, path)
 		return nil
 	}
+}
+
+type INGExport struct {
+	Datum            int    `csv:"Datum"`
+	NaamOmschrijving string `csv:"Naam / Omschrijving"`
+	Rekening         string `csv:"Rekening"`
+	Tegenrekening    string `csv:"Tegenrekening"`
+	Code             string `csv:"Code"`
+	AfBij            string `csv:"Af Bij"`
+	BedragEUR        string `csv:"Bedrag (EUR)"`
+	Mutatiesoort     string `csv:"Mutatiesoort"`
+	Mededelingen     string `csv:"Mededelingen"`
+	SaldoNaMutatie   string `csv:"Saldo na mutatie"`
+	Tag              string `csv:"Tag"`
+}
+
+func (e INGExport) ToYNAB(accountID string) (*transaction.PayloadTransaction, error) {
+	trans := transaction.PayloadTransaction{
+		AccountID: accountID,
+		Cleared:   transaction.ClearingStatusCleared,
+		Approved:  false,
+		PayeeName: &e.NaamOmschrijving,
+	}
+	color := transaction.FlagColorGreen
+	trans.FlagColor = &color
+	if len(e.Mededelingen) > 195 {
+		memo := e.Mededelingen[:195]
+		trans.Memo = &memo
+	} else {
+		trans.Memo = &e.Mededelingen
+	}
+	amount, err := strconv.ParseInt(strings.ReplaceAll(e.BedragEUR, ",", ""), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	if e.AfBij == "Af" {
+		amount = amount * -1
+	}
+	trans.Amount = amount
+
+	dateString := strconv.Itoa(e.Datum)
+	if len(dateString) != 8 {
+		return nil, fmt.Errorf("not a valid date string")
+	}
+	year := dateString[:4]
+	month := dateString[4:6]
+	day := dateString[6:]
+	trans.Date, err = api.DateFromString(fmt.Sprintf("%s-%s-%s", year, month, day))
+	if err != nil {
+		return nil, err
+	}
+
+	importID := fmt.Sprintf("YNAB:%d:%s-%s-%s:1", amount, year, month, day)
+	trans.ImportID = &importID
+
+	return &trans, nil
 }

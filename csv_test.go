@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/suite"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/suite"
+	"go.bmvs.io/ynab/api"
+	"go.bmvs.io/ynab/api/transaction"
 )
 
 type CSVTestSuite struct {
@@ -58,6 +62,58 @@ func (s *CSVTestSuite) TestCSVToINGExport() {
 			s.Require().Equal(test.err, err)
 			s.Require().Equal(test.expectedOutput, lines)
 		})
+	}
+}
+
+func (s CSVTestSuite) TestToYNAB() {
+	tests := []struct {
+		Line      INGExport
+		AccountID string
+		PayeeName string
+		Memo      string
+		FlagColor transaction.FlagColor
+		Date      time.Time
+		ImportID  string
+	}{
+		{
+			Line: INGExport{
+				Datum:            20200102,
+				NaamOmschrijving: "Origin.com EA",
+				Rekening:         "NL13INGB0000000000",
+				Tegenrekening:    "NL14RABO0000000000",
+				Code:             "ID",
+				AfBij:            "Af",
+				BedragEUR:        "3,99",
+				Mutatiesoort:     "iDEAL",
+				Mededelingen:     "example",
+				SaldoNaMutatie:   "20,00",
+			},
+			AccountID: "test_accountid",
+			PayeeName: "Origin.com EA",
+			Memo:      "example",
+			FlagColor: transaction.FlagColorGreen,
+			Date:      time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC),
+			ImportID:  "YNAB:-399:2020-01-02:1",
+		},
+	}
+	for _, test := range tests {
+		expectedTrans := &transaction.PayloadTransaction{
+			AccountID: test.AccountID,
+			Date: api.Date{
+				Time: test.Date,
+			},
+			Amount:    -399,
+			Cleared:   transaction.ClearingStatusCleared,
+			Approved:  false,
+			PayeeName: &test.PayeeName,
+			Memo:      &test.Memo,
+			FlagColor: &test.FlagColor,
+			ImportID:  &test.ImportID,
+		}
+
+		trans, err := test.Line.ToYNAB(test.AccountID)
+		s.Require().NoError(err)
+		s.Require().Equal(expectedTrans, trans)
 	}
 }
 
