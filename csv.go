@@ -89,7 +89,12 @@ func (e INGExport) ToYNAB(accountID string) (*transaction.PayloadTransaction, er
 	}
 	color := transaction.FlagColorGreen
 	trans.FlagColor = &color
-	trans.Memo = &e.Mededelingen
+	if len(e.Mededelingen) > 195 {
+		memo := e.Mededelingen[:195]
+		trans.Memo = &memo
+	} else {
+		trans.Memo = &e.Mededelingen
+	}
 	amount, err := strconv.ParseInt(strings.ReplaceAll(e.BedragEUR, ",", ""), 10, 64)
 	if err != nil {
 		return nil, err
@@ -111,6 +116,9 @@ func (e INGExport) ToYNAB(accountID string) (*transaction.PayloadTransaction, er
 	if err != nil {
 		return nil, err
 	}
+
+	importID := fmt.Sprintf("YNAB:%d:%s-%s-%s:1", amount, year, month, day)
+	trans.ImportID = &importID
 
 	return &trans, nil
 }

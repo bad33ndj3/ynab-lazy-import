@@ -65,38 +65,55 @@ func (s *CSVTestSuite) TestCSVToINGExport() {
 }
 
 func (s CSVTestSuite) TestToYNAB() {
-	line := INGExport{
-		Datum:            20200102,
-		NaamOmschrijving: "Origin.com EA",
-		Rekening:         "NL13INGB0000000000",
-		Tegenrekening:    "NL14RABO0000000000",
-		Code:             "ID",
-		AfBij:            "Af",
-		BedragEUR:        "3,99",
-		Mutatiesoort:     "iDEAL",
-		Mededelingen:     "example",
-		SaldoNaMutatie:   "20,00",
-	}
-	accountID := "test_accountid"
-	payeeName := "Origin.com EA"
-	memo := "example"
-	flagColor := transaction.FlagColorGreen
-	expectedTrans := &transaction.PayloadTransaction{
-		AccountID: accountID,
-		Date: api.Date{
-			Time: time.Date(2020, 01, 02, 0, 0, 0, 0, time.UTC),
+	tests := []struct {
+		Line      INGExport
+		AccountID string
+		PayeeName string
+		Memo      string
+		FlagColor transaction.FlagColor
+		Date      time.Time
+		ImportID  string
+	}{
+		{
+			Line: INGExport{
+				Datum:            20200102,
+				NaamOmschrijving: "Origin.com EA",
+				Rekening:         "NL13INGB0000000000",
+				Tegenrekening:    "NL14RABO0000000000",
+				Code:             "ID",
+				AfBij:            "Af",
+				BedragEUR:        "3,99",
+				Mutatiesoort:     "iDEAL",
+				Mededelingen:     "example",
+				SaldoNaMutatie:   "20,00",
+			},
+			AccountID: "test_accountid",
+			PayeeName: "Origin.com EA",
+			Memo:      "example",
+			FlagColor: transaction.FlagColorGreen,
+			Date:      time.Date(2020, 01, 02, 0, 0, 0, 0, time.UTC),
+			ImportID:  "YNAB:-399:2020-01-02:1",
 		},
-		Amount:    -399,
-		Cleared:   transaction.ClearingStatusCleared,
-		Approved:  false,
-		PayeeName: &payeeName,
-		Memo:      &memo,
-		FlagColor: &flagColor,
 	}
+	for _, test := range tests {
+		expectedTrans := &transaction.PayloadTransaction{
+			AccountID: test.AccountID,
+			Date: api.Date{
+				Time: test.Date,
+			},
+			Amount:    -399,
+			Cleared:   transaction.ClearingStatusCleared,
+			Approved:  false,
+			PayeeName: &test.PayeeName,
+			Memo:      &test.Memo,
+			FlagColor: &test.FlagColor,
+			ImportID:  &test.ImportID,
+		}
 
-	trans, err := line.ToYNAB(accountID)
-	s.Require().NoError(err)
-	s.Require().Equal(expectedTrans, trans)
+		trans, err := test.Line.ToYNAB(test.AccountID)
+		s.Require().NoError(err)
+		s.Require().Equal(expectedTrans, trans)
+	}
 }
 
 func TestCSVTestSuite(t *testing.T) {

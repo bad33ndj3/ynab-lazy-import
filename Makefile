@@ -14,3 +14,5 @@ test:
 		$(GOTEST) -v -coverprofile=reports/coverage.out ./...
 coverage:
 		$(GOCMD) tool cover -html=reports/coverage.out
+clean:
+		$(GOCMD) clean
