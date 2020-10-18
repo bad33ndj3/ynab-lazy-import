@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"go.bmvs.io/ynab/api/transaction"
 	"os"
 	"os/user"
 )
@@ -36,12 +36,14 @@ func CSVToYNAB(account string, dir *string) error {
 		return err
 	}
 
-	//var transactions []*transaction.PayloadTransaction
-
 	// unmarshal exportfiles to ynab transactions
+	var transactions []*transaction.PayloadTransaction
 	for _, line := range exportLines {
-		log.Print(line)
-		//trans := &transaction.PayloadTransaction{}
+		trans, err := line.ToYNAB("1")
+		if err != nil {
+			return err
+		}
+		transactions = append(transactions, trans)
 	}
 
 	// upload to ynab
