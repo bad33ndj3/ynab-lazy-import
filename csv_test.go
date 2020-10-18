@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/suite"
 	"go.bmvs.io/ynab/api"
 	"go.bmvs.io/ynab/api/transaction"
-	"testing"
-	"time"
 )
 
 type CSVTestSuite struct {
@@ -91,7 +92,7 @@ func (s CSVTestSuite) TestToYNAB() {
 			PayeeName: "Origin.com EA",
 			Memo:      "example",
 			FlagColor: transaction.FlagColorGreen,
-			Date:      time.Date(2020, 01, 02, 0, 0, 0, 0, time.UTC),
+			Date:      time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC),
 			ImportID:  "YNAB:-399:2020-01-02:1",
 		},
 	}

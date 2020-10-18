@@ -3,20 +3,21 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/gocarina/gocsv"
-	"go.bmvs.io/ynab/api"
-	"go.bmvs.io/ynab/api/transaction"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/gocarina/gocsv"
+	"go.bmvs.io/ynab/api"
+	"go.bmvs.io/ynab/api/transaction"
 )
 
 var errFailedToGetPath error = fmt.Errorf("failed to get path")
 
-func getLines(account string, path string) ([]*INGExport, error) {
+func getLines(account, path string) ([]*INGExport, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, errFailedToGetPath
 	}
