@@ -16,11 +16,11 @@ type CSVTestSuite struct {
 	testAssets string
 }
 
-func (s *CSVTestSuite) SetupSuite() {
-	s.testAssets = "testassets"
+func (t *CSVTestSuite) SetupSuite() {
+	t.testAssets = "testassets"
 }
 
-func (s *CSVTestSuite) TestCSVToINGExport() {
+func (t *CSVTestSuite) TestCSVToINGExport() {
 	tests := []struct {
 		expectedOutput []*INGExport
 		inAccount      string
@@ -44,28 +44,28 @@ func (s *CSVTestSuite) TestCSVToINGExport() {
 				},
 			},
 			inAccount: "NL13INGB0000000000",
-			inDir:     fmt.Sprintf("%s/%s", s.testAssets, "base"),
+			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "base"),
 		},
 		{
 			inAccount: "accountNonExisting",
-			inDir:     fmt.Sprintf("%s/%s", s.testAssets, "base"),
+			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "base"),
 		},
 		{
 			inAccount: "accountNonExisting",
-			inDir:     fmt.Sprintf("%s/%s", s.testAssets, "pathNonExisting"),
+			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "pathNonExisting"),
 			err:       errFailedToGetPath,
 		},
 	}
 	for _, test := range tests {
-		s.Run("", func() {
+		t.Run("", func() {
 			lines, err := getLines(test.inAccount, test.inDir)
-			s.Require().Equal(test.err, err)
-			s.Require().Equal(test.expectedOutput, lines)
+			t.Require().Equal(test.err, err)
+			t.Require().Equal(test.expectedOutput, lines)
 		})
 	}
 }
 
-func (s CSVTestSuite) TestToYNAB() {
+func (t *CSVTestSuite) TestToYNAB() {
 	tests := []struct {
 		Line      INGExport
 		AccountID string
@@ -177,8 +177,8 @@ func (s CSVTestSuite) TestToYNAB() {
 		}
 
 		trans, err := test.Line.ToYNAB(test.AccountID)
-		s.Require().NoError(err)
-		s.Require().Equal(expectedTrans, trans)
+		t.Require().NoError(err)
+		t.Require().Equal(expectedTrans, trans)
 	}
 }
 
