@@ -25,15 +25,22 @@ type config struct {
 	CustomPath *string
 }
 
-var errENVNotFound = fmt.Errorf(".env file not found")
-
 func main() {
 	var cmd CSVToYNAB
 
-	err := cmd.init()
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
+	cmd.config.AccountID = os.Getenv("ACCOUNT_ID")
+	cmd.config.AccesToken = os.Getenv("ACCES_TOKEN")
+	cmd.config.BudgetID = os.Getenv("BUDGET_ID")
+	cmd.config.IBAN = os.Getenv("IBAN")
+	customPath, exists := os.LookupEnv("CUSTOM_PATH")
+	if exists {
+		cmd.config.CustomPath = &customPath
+	}
+	cmd.YNABClient = ynab.NewClient(cmd.config.AccesToken)
 	createdTransactions, err := cmd.CSVToYNAB()
 	if err != nil {
 		log.Fatal(err)
@@ -80,23 +87,4 @@ func (c CSVToYNAB) CSVToYNAB() (*transaction.CreatedTransactions, error) {
 	}
 
 	return createdTransactions, nil
-}
-
-func (c CSVToYNAB) init() error {
-	err := godotenv.Load()
-	if err != nil {
-		return errENVNotFound
-	}
-
-	c.config.AccountID = os.Getenv("ACCOUNT_ID")
-	c.config.AccesToken = os.Getenv("ACCES_TOKEN")
-	c.config.BudgetID = os.Getenv("BUDGET_ID")
-	c.config.IBAN = os.Getenv("IBAN")
-	customPath, exists := os.LookupEnv("CUSTOM_PATH")
-	if exists {
-		c.config.CustomPath = &customPath
-	}
-	c.YNABClient = ynab.NewClient(c.config.AccesToken)
-
-	return nil
 }
