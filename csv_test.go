@@ -95,7 +95,7 @@ func (t *CSVTestSuite) TestToYNAB() {
 			FlagColor: transaction.FlagColorGreen,
 			Date:      time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC),
 			ImportID:  "YNAB:-399:2020-01-02:1",
-			Amount:    -399,
+			Amount:    -3990,
 		},
 		{
 			Line: INGExport{
@@ -116,7 +116,7 @@ func (t *CSVTestSuite) TestToYNAB() {
 			FlagColor: transaction.FlagColorGreen,
 			Date:      time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC),
 			ImportID:  "YNAB:-12399:2020-01-02:1",
-			Amount:    -12399,
+			Amount:    -123990,
 		},
 		{
 			Line: INGExport{
@@ -137,7 +137,7 @@ func (t *CSVTestSuite) TestToYNAB() {
 			FlagColor: transaction.FlagColorGreen,
 			Date:      time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC),
 			ImportID:  "YNAB:2200:2020-01-02:1",
-			Amount:    2200,
+			Amount:    22000,
 		},
 		{
 			Line: INGExport{
@@ -158,7 +158,7 @@ func (t *CSVTestSuite) TestToYNAB() {
 			FlagColor: transaction.FlagColorGreen,
 			Date:      time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC),
 			ImportID:  "YNAB:2200:2020-01-02:1",
-			Amount:    2200,
+			Amount:    22000,
 		},
 	}
 	for _, test := range tests {
