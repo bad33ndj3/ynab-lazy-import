@@ -104,7 +104,7 @@ func (e INGExport) ToYNAB(accountID string) (*transaction.PayloadTransaction, er
 	if e.AfBij == "Af" {
 		amount = amount * -1
 	}
-	trans.Amount = amount
+	trans.Amount = amount * 10
 
 	dateString := strconv.Itoa(e.Datum)
 	if len(dateString) != 8 {
