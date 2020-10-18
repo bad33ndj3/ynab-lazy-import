@@ -1,4 +1,4 @@
-module github.com/bad33ndj3/csvtoynab
+module github.com/bad33ndj3/ing-to-ynab
 
 go 1.14
 
