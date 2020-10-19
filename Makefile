@@ -1,7 +1,7 @@
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOTEST=$(GOCMD) test
-BINARY_NAME=csvtoynab
+BINARY_NAME=ynab-lazy-import
 BINARY_UNIX=$(BINARY_NAME)_unix
 
 all: test build
@@ -15,6 +15,3 @@ coverage:
 		$(GOCMD) tool cover -html=reports/coverage.out
 clean:
 		$(GOCMD) clean
-run: build
-		@./csvtoynab
-		@$(MAKE) clean

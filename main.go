@@ -12,7 +12,7 @@ import (
 	"go.bmvs.io/ynab/api/transaction"
 )
 
-type CSVToYNAB struct {
+type Context struct {
 	YNABClient ynab.ClientServicer
 	config
 }
@@ -26,7 +26,7 @@ type config struct {
 }
 
 func main() {
-	var cmd CSVToYNAB
+	var cmd Context
 
 	err := godotenv.Load()
 	if err != nil {
@@ -53,7 +53,7 @@ func main() {
 	os.Exit(0)
 }
 
-func (c CSVToYNAB) CSVToYNAB() (*transaction.CreatedTransactions, error) {
+func (c Context) CSVToYNAB() (*transaction.CreatedTransactions, error) {
 	if c.config.CustomPath == nil {
 		usr, err := user.Current()
 		if err != nil {

@@ -1,4 +1,4 @@
-module github.com/bad33ndj3/ing-to-ynab
+module github.com/bad33ndj3/ynab-lazy-import
 
 go 1.14
 

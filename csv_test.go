@@ -20,7 +20,7 @@ func (t *CSVTestSuite) SetupSuite() {
 	t.testAssets = "testassets"
 }
 
-func (t *CSVTestSuite) TestCSVToINGExport() {
+func (t *CSVTestSuite) TestCSVToING() {
 	tests := []struct {
 		expectedOutput []*INGExport
 		inAccount      string
