@@ -1,4 +1,4 @@
-package main
+package csv
 
 import (
 	"encoding/csv"
@@ -17,7 +17,7 @@ import (
 
 var errFailedToGetPath error = fmt.Errorf("failed to get path")
 
-func getLines(account, path string) ([]*INGExport, error) {
+func GetLines(account, path string) ([]*INGExport, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, errFailedToGetPath
 	}

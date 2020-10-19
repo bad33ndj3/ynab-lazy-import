@@ -1,4 +1,4 @@
-package main
+package csv
 
 import (
 	"fmt"
@@ -10,17 +10,17 @@ import (
 	"go.bmvs.io/ynab/api/transaction"
 )
 
-type CSVTestSuite struct {
+type INGTestSuite struct {
 	suite.Suite
 
 	testAssets string
 }
 
-func (t *CSVTestSuite) SetupSuite() {
+func (t *INGTestSuite) SetupSuite() {
 	t.testAssets = "testassets"
 }
 
-func (t *CSVTestSuite) TestCSVToING() {
+func (t *INGTestSuite) TestCSVToING() {
 	tests := []struct {
 		expectedOutput []*INGExport
 		inAccount      string
@@ -58,14 +58,14 @@ func (t *CSVTestSuite) TestCSVToING() {
 	}
 	for _, test := range tests {
 		t.Run("", func() {
-			lines, err := getLines(test.inAccount, test.inDir)
+			lines, err := GetLines(test.inAccount, test.inDir)
 			t.Require().Equal(test.err, err)
 			t.Require().Equal(test.expectedOutput, lines)
 		})
 	}
 }
 
-func (t *CSVTestSuite) TestToYNAB() {
+func (t *INGTestSuite) TestToYNAB() {
 	tests := []struct {
 		Line      INGExport
 		AccountID string
@@ -183,5 +183,5 @@ func (t *CSVTestSuite) TestToYNAB() {
 }
 
 func TestCSVTestSuite(t *testing.T) {
-	suite.Run(t, new(CSVTestSuite))
+	suite.Run(t, new(INGTestSuite))
 }
