@@ -4,10 +4,12 @@ import (
 	"log"
 	"os"
 
+	"go.bmvs.io/ynab/api/transaction"
+
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/csv"
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/downloaddirectory"
-	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"go.bmvs.io/ynab"
 )
 
@@ -21,19 +23,21 @@ var apiCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var env config
 
-		err := godotenv.Load()
+		viper.AddConfigPath("$HOME/.ynab")
+		if err := viper.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+				log.Fatal("no config file found at $HOME/.ynab")
+			} else {
+				log.Fatal(err)
+			}
+		}
+
+		err := viper.Unmarshal(&env)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("unable to decode into struct, %v", err)
 		}
-		env.AccountID = os.Getenv("ACCOUNT_ID")
-		env.AccesToken = os.Getenv("ACCES_TOKEN")
-		env.BudgetID = os.Getenv("BUDGET_ID")
-		env.IBAN = os.Getenv("IBAN")
-		customPath, exists := os.LookupEnv("CUSTOM_PATH")
-		if exists {
-			env.CustomPath = &customPath
-		}
-		YNABClient := ynab.NewClient(env.AccesToken)
+
+		YNABClient := ynab.NewClient(env.Token)
 		if env.CustomPath == nil {
 			dir, err := downloaddirectory.DownloadDirectory()
 			if err != nil {
@@ -42,28 +46,41 @@ var apiCmd = &cobra.Command{
 			env.CustomPath = dir
 		}
 
-		transactions, err := csv.GetLines(env.IBAN, *env.CustomPath, env.AccountID)
-		if err != nil {
-			log.Fatal(err)
+		for _, budget := range env.Budgets {
+			var transactions []transaction.PayloadTransaction
+			for _, account := range budget.Accounts {
+				t, err := csv.GetLines(account.Iban, *env.CustomPath, account.Account)
+				if err != nil {
+					log.Fatal(err)
+				}
+				transactions = append(transactions, t...)
+			}
+
+			createdTransactions, err := YNABClient.Transaction().CreateTransactions(budget.Budget, transactions)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Printf("Transactions found: %d \n", len(createdTransactions.TransactionIDs)+len(createdTransactions.DuplicateImportIDs))
+			log.Printf("Duplicated transactions: %d \n", len(createdTransactions.DuplicateImportIDs))
+			log.Printf("-------------------------------- \n")
+			log.Printf("Created transactions: %d \n", len(createdTransactions.TransactionIDs))
+			log.Printf("\n")
 		}
 
-		createdTransactions, err := YNABClient.Transaction().CreateTransactions(env.BudgetID, transactions)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Printf("Transactions found: %d \n", len(createdTransactions.TransactionIDs)+len(createdTransactions.DuplicateImportIDs))
-		log.Printf("Duplicated transactions: %d \n", len(createdTransactions.DuplicateImportIDs))
-		log.Printf("-------------------------------- \n")
-		log.Printf("Created transactions: %d \n", len(createdTransactions.TransactionIDs))
 		os.Exit(0)
 	},
 }
 
 type config struct {
-	AccountID  string
-	AccesToken string
-	BudgetID   string
-	IBAN       string
+	Token   string
+	Budgets []struct {
+		Budget   string
+		Accounts []struct {
+			Account string
+			Iban    string
+		}
+	}
+
 	CustomPath *string
 }
