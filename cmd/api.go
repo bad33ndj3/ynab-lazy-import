@@ -14,12 +14,12 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(ingCmd)
+	rootCmd.AddCommand(apiCmd)
 }
 
-var ingCmd = &cobra.Command{
-	Use:   "ing",
-	Short: "Use ING exports",
+var apiCmd = &cobra.Command{
+	Use:   "api",
+	Short: "Push transactions to YNAB's api",
 	Run: func(cmd *cobra.Command, args []string) {
 		var ctx Context
 
