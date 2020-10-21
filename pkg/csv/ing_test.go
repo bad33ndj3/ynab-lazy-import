@@ -2,6 +2,7 @@ package csv
 
 import (
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"testing"
 	"time"
 
@@ -22,30 +23,11 @@ func (t *INGTestSuite) SetupSuite() {
 
 func (t *INGTestSuite) TestCSVToING() {
 	tests := []struct {
-		expectedOutput []*INGExport
+		expectedOutput []transaction.PayloadTransaction
 		inAccount      string
 		inDir          string
 		err            error
 	}{
-		{
-			expectedOutput: []*INGExport{
-				{
-					Datum:            20200101,
-					NaamOmschrijving: "Origin.com EA",
-					Rekening:         "NL13INGB0000000000",
-					Tegenrekening:    "NL14RABO0000000000",
-					Code:             "ID",
-					AfBij:            "Af",
-					BedragEUR:        "3,99",
-					Mutatiesoort:     "iDEAL",
-					Mededelingen:     "example",
-					SaldoNaMutatie:   "20,00",
-					Tag:              "",
-				},
-			},
-			inAccount: "NL13INGB0000000000",
-			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "base"),
-		},
 		{
 			inAccount: "accountNonExisting",
 			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "base"),
@@ -58,7 +40,7 @@ func (t *INGTestSuite) TestCSVToING() {
 	}
 	for _, test := range tests {
 		t.Run("", func() {
-			lines, err := GetLines(test.inAccount, test.inDir)
+			lines, err := GetLines(test.inAccount, test.inDir, "")
 			t.Require().Equal(test.err, err)
 			t.Require().Equal(test.expectedOutput, lines)
 		})
@@ -175,6 +157,7 @@ func (t *INGTestSuite) TestToYNAB() {
 			FlagColor: &test.FlagColor,
 			ImportID:  &test.ImportID,
 		}
+		spew.Dump(expectedTrans)
 
 		trans, err := test.Line.ToYNAB(test.AccountID)
 		t.Require().NoError(err)
