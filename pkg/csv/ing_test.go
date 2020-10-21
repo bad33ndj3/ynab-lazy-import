@@ -2,7 +2,6 @@ package csv
 
 import (
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"testing"
 	"time"
 
@@ -157,7 +156,6 @@ func (t *INGTestSuite) TestToYNAB() {
 			FlagColor: &test.FlagColor,
 			ImportID:  &test.ImportID,
 		}
-		spew.Dump(expectedTrans)
 
 		trans, err := test.Line.ToYNAB(test.AccountID)
 		t.Require().NoError(err)
