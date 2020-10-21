@@ -23,7 +23,7 @@ var apiCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var env config
 
-		viper.AddConfigPath("$HOME/.ynab")
+		viper.AddConfigPath("$HOME/.config/ynab-lazy-import")
 		if err := viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 				log.Fatal("no config file found at $HOME/.ynab")
