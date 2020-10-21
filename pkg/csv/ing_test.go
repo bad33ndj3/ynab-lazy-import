@@ -1,4 +1,4 @@
-package main
+package csv
 
 import (
 	"fmt"
@@ -10,42 +10,23 @@ import (
 	"go.bmvs.io/ynab/api/transaction"
 )
 
-type CSVTestSuite struct {
+type INGTestSuite struct {
 	suite.Suite
 
 	testAssets string
 }
 
-func (t *CSVTestSuite) SetupSuite() {
+func (t *INGTestSuite) SetupSuite() {
 	t.testAssets = "testassets"
 }
 
-func (t *CSVTestSuite) TestCSVToING() {
+func (t *INGTestSuite) TestCSVToING() {
 	tests := []struct {
-		expectedOutput []*INGExport
+		expectedOutput []transaction.PayloadTransaction
 		inAccount      string
 		inDir          string
 		err            error
 	}{
-		{
-			expectedOutput: []*INGExport{
-				{
-					Datum:            20200101,
-					NaamOmschrijving: "Origin.com EA",
-					Rekening:         "NL13INGB0000000000",
-					Tegenrekening:    "NL14RABO0000000000",
-					Code:             "ID",
-					AfBij:            "Af",
-					BedragEUR:        "3,99",
-					Mutatiesoort:     "iDEAL",
-					Mededelingen:     "example",
-					SaldoNaMutatie:   "20,00",
-					Tag:              "",
-				},
-			},
-			inAccount: "NL13INGB0000000000",
-			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "base"),
-		},
 		{
 			inAccount: "accountNonExisting",
 			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "base"),
@@ -58,14 +39,14 @@ func (t *CSVTestSuite) TestCSVToING() {
 	}
 	for _, test := range tests {
 		t.Run("", func() {
-			lines, err := getLines(test.inAccount, test.inDir)
+			lines, err := GetLines(test.inAccount, test.inDir, "")
 			t.Require().Equal(test.err, err)
 			t.Require().Equal(test.expectedOutput, lines)
 		})
 	}
 }
 
-func (t *CSVTestSuite) TestToYNAB() {
+func (t *INGTestSuite) TestToYNAB() {
 	tests := []struct {
 		Line      INGExport
 		AccountID string
@@ -183,5 +164,5 @@ func (t *CSVTestSuite) TestToYNAB() {
 }
 
 func TestCSVTestSuite(t *testing.T) {
-	suite.Run(t, new(CSVTestSuite))
+	suite.Run(t, new(INGTestSuite))
 }

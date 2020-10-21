@@ -1,4 +1,4 @@
-package main
+package csv
 
 import (
 	"encoding/csv"
@@ -17,7 +17,7 @@ import (
 
 var errFailedToGetPath error = fmt.Errorf("failed to get path")
 
-func getLines(account, path string) ([]*INGExport, error) {
+func GetLines(iban, path, accountID string) ([]transaction.PayloadTransaction, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, errFailedToGetPath
 	}
@@ -30,7 +30,7 @@ func getLines(account, path string) ([]*INGExport, error) {
 
 	// check for bank export files
 	for _, file := range files {
-		if strings.Contains(file, ".csv") && strings.Contains(file, account) {
+		if strings.Contains(file, ".csv") && strings.Contains(file, iban) {
 			exportFile, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE, os.ModePerm)
 			if err != nil {
 				panic(err)
@@ -54,7 +54,16 @@ func getLines(account, path string) ([]*INGExport, error) {
 			}
 		}
 	}
-	return exportLines, nil
+	var transactions []transaction.PayloadTransaction
+	for _, line := range exportLines {
+		trans, err := line.ToYNAB(accountID)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, *trans)
+	}
+
+	return transactions, nil
 }
 
 func visit(files *[]string) filepath.WalkFunc {
