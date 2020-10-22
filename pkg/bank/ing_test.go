@@ -1,7 +1,6 @@
-package csv
+package bank
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -12,38 +11,6 @@ import (
 
 type INGTestSuite struct {
 	suite.Suite
-
-	testAssets string
-}
-
-func (t *INGTestSuite) SetupSuite() {
-	t.testAssets = "testassets"
-}
-
-func (t *INGTestSuite) TestCSVToING() {
-	tests := []struct {
-		expectedOutput []transaction.PayloadTransaction
-		inAccount      string
-		inDir          string
-		err            error
-	}{
-		{
-			inAccount: "accountNonExisting",
-			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "base"),
-		},
-		{
-			inAccount: "accountNonExisting",
-			inDir:     fmt.Sprintf("%s/%s", t.testAssets, "pathNonExisting"),
-			err:       errFailedToGetPath,
-		},
-	}
-	for _, test := range tests {
-		t.Run("", func() {
-			lines, err := GetLines(test.inAccount, test.inDir, "")
-			t.Require().Equal(test.err, err)
-			t.Require().Equal(test.expectedOutput, lines)
-		})
-	}
 }
 
 func (t *INGTestSuite) TestToYNAB() {
@@ -163,6 +130,6 @@ func (t *INGTestSuite) TestToYNAB() {
 	}
 }
 
-func TestCSVTestSuite(t *testing.T) {
+func TestINGTestSuite(t *testing.T) {
 	suite.Run(t, new(INGTestSuite))
 }

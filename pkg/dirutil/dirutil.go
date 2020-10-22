@@ -1,14 +1,26 @@
-package downloaddirectory
+package dirutil
 
 import (
 	"fmt"
 	"os"
 	"os/user"
+	"path/filepath"
 )
 
 var errFailedToGetPath error = fmt.Errorf("failed to get path")
 
-func DownloadDirectory() (*string, error) {
+func FilePathWalkDir(root, ext string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() && filepath.Ext(path) == ext {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return files, err
+}
+
+func DownloadPath() (*string, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user for download path: %w", err)

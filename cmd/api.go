@@ -4,10 +4,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
+
 	"go.bmvs.io/ynab/api/transaction"
 
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/csv"
-	"github.com/bad33ndj3/ynab-lazy-import/pkg/downloaddirectory"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.bmvs.io/ynab"
@@ -38,8 +39,9 @@ var apiCmd = &cobra.Command{
 		}
 
 		YNABClient := ynab.NewClient(env.Token)
+
 		if env.CustomPath == nil {
-			dir, err := downloaddirectory.DownloadDirectory()
+			dir, err := dirutil.DownloadPath()
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -49,21 +51,24 @@ var apiCmd = &cobra.Command{
 		for _, budget := range env.Budgets {
 			var transactions []transaction.PayloadTransaction
 			for _, account := range budget.Accounts {
-				t, err := csv.GetLines(account.Iban, *env.CustomPath, account.Account)
+				t, err := csv.ReadDir(*env.CustomPath, account.Iban, account.Account)
 				if err != nil {
 					log.Fatal(err)
 				}
 				transactions = append(transactions, t...)
 			}
 
+			if len(transactions) < 1 {
+				return
+			}
 			createdTransactions, err := YNABClient.Transaction().CreateTransactions(budget.Budget, transactions)
 			if err != nil {
 				log.Fatal(err)
 			}
 
+			log.Printf("-------------------------------- \n")
 			log.Printf("Transactions found: %d \n", len(createdTransactions.TransactionIDs)+len(createdTransactions.DuplicateImportIDs))
 			log.Printf("Duplicated transactions: %d \n", len(createdTransactions.DuplicateImportIDs))
-			log.Printf("-------------------------------- \n")
 			log.Printf("Created transactions: %d \n", len(createdTransactions.TransactionIDs))
 			log.Printf("\n")
 		}
