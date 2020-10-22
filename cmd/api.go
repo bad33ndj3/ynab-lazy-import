@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/bad33ndj3/ynab-lazy-import/pkg/bank"
 	"log"
 	"os"
 
@@ -8,7 +9,6 @@ import (
 
 	"go.bmvs.io/ynab/api/transaction"
 
-	"github.com/bad33ndj3/ynab-lazy-import/pkg/csv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.bmvs.io/ynab"
@@ -51,7 +51,7 @@ var apiCmd = &cobra.Command{
 		for _, budget := range env.Budgets {
 			var transactions []transaction.PayloadTransaction
 			for _, account := range budget.Accounts {
-				t, err := csv.ReadDir(*env.CustomPath, account.Iban, account.Account)
+				t, err := bank.ReadDir(*env.CustomPath, account)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -78,14 +78,12 @@ var apiCmd = &cobra.Command{
 }
 
 type config struct {
-	Token   string
-	Budgets []struct {
-		Budget   string
-		Accounts []struct {
-			Account string
-			Iban    string
-		}
-	}
-
+	Token      string
+	Budgets    []Budget
 	CustomPath *string
+}
+
+type Budget struct {
+	Budget   string
+	Accounts []bank.Account
 }

@@ -9,7 +9,30 @@ import (
 	"go.bmvs.io/ynab/api/transaction"
 )
 
-type INGExport struct {
+type INGLines []ing
+
+func (i INGLines) Seperator() rune {
+	return ';'
+}
+
+func (i INGLines) CorrectFile(path, iban string) bool {
+	return strings.Contains(path, iban)
+}
+
+func (i INGLines) ToYNAB(accountID string) ([]transaction.PayloadTransaction, error) {
+	var lines []transaction.PayloadTransaction
+	for _, line := range i {
+		l, err := line.toYNAB(accountID)
+		if err != nil {
+			return nil, err
+		}
+		lines = append(lines, *l)
+	}
+
+	return lines, nil
+}
+
+type ing struct {
 	Datum            int    `csv:"Datum"`
 	NaamOmschrijving string `csv:"Naam / Omschrijving"`
 	Rekening         string `csv:"Rekening"`
@@ -23,7 +46,7 @@ type INGExport struct {
 	Tag              string `csv:"Tag"`
 }
 
-func (e INGExport) ToYNAB(accountID string) (*transaction.PayloadTransaction, error) {
+func (e ing) toYNAB(accountID string) (*transaction.PayloadTransaction, error) {
 	trans := transaction.PayloadTransaction{
 		AccountID: accountID,
 		Cleared:   transaction.ClearingStatusCleared,
