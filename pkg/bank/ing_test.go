@@ -15,7 +15,7 @@ type INGTestSuite struct {
 
 func (t *INGTestSuite) TestToYNAB() {
 	tests := []struct {
-		Line      INGExport
+		Line      ing
 		AccountID string
 		PayeeName string
 		Memo      string
@@ -25,7 +25,7 @@ func (t *INGTestSuite) TestToYNAB() {
 		Amount    int64
 	}{
 		{
-			Line: INGExport{
+			Line: ing{
 				Datum:            20200102,
 				NaamOmschrijving: "Shopping",
 				Rekening:         "NL13INGB0000000000",
@@ -46,7 +46,7 @@ func (t *INGTestSuite) TestToYNAB() {
 			Amount:    -3990,
 		},
 		{
-			Line: INGExport{
+			Line: ing{
 				Datum:            20200102,
 				NaamOmschrijving: "Shopping",
 				Rekening:         "NL13INGB0000000000",
@@ -67,7 +67,7 @@ func (t *INGTestSuite) TestToYNAB() {
 			Amount:    -123990,
 		},
 		{
-			Line: INGExport{
+			Line: ing{
 				Datum:            20200102,
 				NaamOmschrijving: "Shopping",
 				Rekening:         "NL13INGB0000000000",
@@ -88,7 +88,7 @@ func (t *INGTestSuite) TestToYNAB() {
 			Amount:    22000,
 		},
 		{
-			Line: INGExport{
+			Line: ing{
 				Datum:            20200102,
 				NaamOmschrijving: "Shopping",
 				Rekening:         "NL13INGB0000000000",
@@ -124,7 +124,7 @@ func (t *INGTestSuite) TestToYNAB() {
 			ImportID:  &test.ImportID,
 		}
 
-		trans, err := test.Line.ToYNAB(test.AccountID)
+		trans, err := test.Line.toYNAB(test.AccountID)
 		t.Require().NoError(err)
 		t.Require().Equal(expectedTrans, trans)
 	}
