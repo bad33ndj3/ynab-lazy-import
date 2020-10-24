@@ -34,7 +34,7 @@ var apiCmd = &cobra.Command{
 		viper.AddConfigPath("$HOME/.config/ynab-lazy-import")
 		if err := viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				log.Fatal("no config file found at $HOME/.ynab")
+				log.Fatal("no config file found at $HOME/.config/ynab-lazy-import")
 			} else {
 				log.Fatal(err)
 			}
