@@ -1,9 +1,11 @@
 package cmd
 
 import (
-	"github.com/bad33ndj3/ynab-lazy-import/pkg/bank"
 	"log"
 	"os"
+
+	"github.com/bad33ndj3/ynab-lazy-import/pkg/bank"
+	"github.com/cheynewallace/tabby"
 
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
 
@@ -16,6 +18,11 @@ import (
 
 func init() {
 	rootCmd.AddCommand(apiCmd)
+}
+
+type ResultResponse struct {
+	Budget
+	*transaction.CreatedTransactions
 }
 
 var apiCmd = &cobra.Command{
@@ -48,6 +55,7 @@ var apiCmd = &cobra.Command{
 			env.CustomPath = dir
 		}
 
+		var responses []ResultResponse
 		for _, budget := range env.Budgets {
 			var transactions []transaction.PayloadTransaction
 			for _, account := range budget.Accounts {
@@ -61,20 +69,29 @@ var apiCmd = &cobra.Command{
 			if len(transactions) < 1 {
 				return
 			}
-			createdTransactions, err := YNABClient.Transaction().CreateTransactions(budget.Budget, transactions)
+			createdTransactions, err := YNABClient.Transaction().CreateTransactions(budget.ID, transactions)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			log.Printf("-------------------------------- \n")
-			log.Printf("Transactions found: %d \n", len(createdTransactions.TransactionIDs)+len(createdTransactions.DuplicateImportIDs))
-			log.Printf("Duplicated transactions: %d \n", len(createdTransactions.DuplicateImportIDs))
-			log.Printf("Created transactions: %d \n", len(createdTransactions.TransactionIDs))
-			log.Printf("\n")
+			responses = append(responses, ResultResponse{
+				Budget:              budget,
+				CreatedTransactions: createdTransactions,
+			})
 		}
 
+		output(responses)
 		os.Exit(0)
 	},
+}
+
+func output(responses []ResultResponse) {
+	t := tabby.New()
+	t.AddHeader("Budget", "New", "Duplicated", "Total")
+	for _, response := range responses {
+		t.AddLine(response.Budget.Name, len(response.CreatedTransactions.TransactionIDs), len(response.CreatedTransactions.DuplicateImportIDs), len(response.CreatedTransactions.TransactionIDs)+len(response.CreatedTransactions.DuplicateImportIDs))
+	}
+	t.Print()
 }
 
 type config struct {
@@ -84,6 +101,7 @@ type config struct {
 }
 
 type Budget struct {
-	Budget   string
+	ID       string
+	Name     string
 	Accounts []bank.Account
 }

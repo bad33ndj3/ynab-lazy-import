@@ -2,12 +2,13 @@ package bank
 
 import (
 	"encoding/csv"
-	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
-	"github.com/gocarina/gocsv"
-	"go.bmvs.io/ynab/api/transaction"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
+	"github.com/gocarina/gocsv"
+	"go.bmvs.io/ynab/api/transaction"
 )
 
 type Bank interface {

@@ -15,3 +15,5 @@ coverage:
 		$(GOCMD) tool cover -html=reports/coverage.out
 clean:
 		$(GOCMD) clean
+run:
+		$(GOCMD) run main.go api
