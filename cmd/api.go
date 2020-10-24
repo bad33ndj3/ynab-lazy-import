@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
+	"github.com/spf13/viper"
+
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/bank"
 	"github.com/cheynewallace/tabby"
 	"github.com/spf13/cobra"
@@ -17,21 +20,35 @@ type ApiCmd struct {
 	budgets    []Budget
 }
 
-func NewAPICommand(ynab ynab.ClientServicer, path string, budgets []Budget) *cobra.Command {
-	ApiCmd := ApiCmd{
-		ynabClient: ynab,
-		path:       path,
-		budgets:    budgets,
-	}
-	cmd := &cobra.Command{
+func NewAPICommand() *cobra.Command {
+	return &cobra.Command{
 		Use:   "api",
 		Short: "Push transactions to YNAB's api",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			var yaml config
+			viper.AddConfigPath(configPath)
+			if err := viper.ReadInConfig(); err != nil {
+				log.Fatal(err)
+			}
+
+			if err := viper.Unmarshal(&yaml); err != nil {
+				log.Fatal(err)
+			}
+
+			dir, err := dirutil.DownloadPath()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			ApiCmd := ApiCmd{
+				ynabClient: ynab.NewClient(yaml.Token),
+				path:       dir,
+				budgets:    yaml.Budgets,
+			}
+
 			return ApiCmd.run()
 		},
 	}
-
-	return cmd
 }
 
 func (c ApiCmd) run() error {

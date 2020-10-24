@@ -5,11 +5,15 @@ import (
 	"log"
 	"os"
 
-	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"go.bmvs.io/ynab"
 )
+
+const configPath = "$HOME/.config/ynab-lazy-import"
+
+type config struct {
+	Token   string
+	Budgets []Budget
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "ynab-lazy-import",
@@ -29,30 +33,6 @@ func Execute() {
 	}
 }
 
-const configPath = "$HOME/.config/ynab-lazy-import"
-
 func init() {
-	var yaml config
-
-	viper.AddConfigPath(configPath)
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := viper.Unmarshal(&yaml); err != nil {
-		log.Fatal(err)
-	}
-
-	dir, err := dirutil.DownloadPath()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ynabClient := ynab.NewClient(yaml.Token)
-	rootCmd.AddCommand(NewAPICommand(ynabClient, dir, yaml.Budgets))
-}
-
-type config struct {
-	Token   string
-	Budgets []Budget
+	rootCmd.AddCommand(NewAPICommand())
 }
