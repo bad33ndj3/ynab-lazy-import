@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -32,4 +33,9 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(NewAPICommand())
+	initCmd, err := NewInitCommand()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rootCmd.AddCommand(initCmd)
 }
