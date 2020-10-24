@@ -19,6 +19,7 @@ type Bank interface {
 
 type Account struct {
 	Bank    string
+	Name    string
 	Account string
 	Iban    string
 }
