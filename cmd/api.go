@@ -61,23 +61,18 @@ func (c ApiCmd) run() error {
 		})
 	}
 
-	output(responses)
+	c.output(responses)
 
 	return nil
 }
 
-func output(responses []ResultResponse) {
+func (c *ApiCmd) output(responses []ResultResponse) {
 	t := tabby.New()
 	t.AddHeader("Budget", "New", "Duplicated", "Total")
 	for _, response := range responses {
 		t.AddLine(response.Budget.Name, len(response.CreatedTransactions.TransactionIDs), len(response.CreatedTransactions.DuplicateImportIDs), len(response.CreatedTransactions.TransactionIDs)+len(response.CreatedTransactions.DuplicateImportIDs))
 	}
 	t.Print()
-}
-
-type config struct {
-	Token   string
-	Budgets []Budget
 }
 
 type Budget struct {

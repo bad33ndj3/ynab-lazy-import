@@ -29,15 +29,17 @@ func Execute() {
 	}
 }
 
-func init() {
-	var env config
+const configPath = "$HOME/.config/ynab-lazy-import"
 
-	viper.AddConfigPath("$HOME/.config/ynab-lazy-import")
+func init() {
+	var yaml config
+
+	viper.AddConfigPath(configPath)
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := viper.Unmarshal(&env); err != nil {
+	if err := viper.Unmarshal(&yaml); err != nil {
 		log.Fatal(err)
 	}
 
@@ -46,6 +48,11 @@ func init() {
 		log.Fatal(err)
 	}
 
-	ynabClient := ynab.NewClient(env.Token)
-	rootCmd.AddCommand(NewAPICommand(ynabClient, dir, env.Budgets))
+	ynabClient := ynab.NewClient(yaml.Token)
+	rootCmd.AddCommand(NewAPICommand(ynabClient, dir, yaml.Budgets))
+}
+
+type config struct {
+	Token   string
+	Budgets []Budget
 }
