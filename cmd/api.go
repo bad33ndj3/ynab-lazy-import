@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
 	"github.com/spf13/viper"
@@ -14,12 +13,14 @@ import (
 	"go.bmvs.io/ynab/api/transaction"
 )
 
+// ApiCmd contains what the api command needs
 type ApiCmd struct {
 	ynabClient ynab.ClientServicer
 	path       string
-	budgets    []Budget
+	budgets    []budget
 }
 
+// NewAPICommand returns the API command as a cobra command
 func NewAPICommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "api",
@@ -28,16 +29,16 @@ func NewAPICommand() *cobra.Command {
 			var yaml config
 			viper.AddConfigPath(configPath)
 			if err := viper.ReadInConfig(); err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			if err := viper.Unmarshal(&yaml); err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			dir, err := dirutil.DownloadPath()
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			ApiCmd := ApiCmd{
@@ -51,8 +52,21 @@ func NewAPICommand() *cobra.Command {
 	}
 }
 
+type budget struct {
+	ID       string
+	Name     string
+	Accounts []bank.Account
+}
+
+type resultResponse struct {
+	BudgetName            string
+	NewTransactions       int
+	DuplicateTransactions int
+	TotalTransactions     int
+}
+
 func (c ApiCmd) run() error {
-	var responses []ResultResponse
+	var responses []resultResponse
 	for _, budget := range c.budgets {
 		var transactions []transaction.PayloadTransaction
 		for _, account := range budget.Accounts {
@@ -69,12 +83,14 @@ func (c ApiCmd) run() error {
 
 		createdTransactions, err := c.ynabClient.Transaction().CreateTransactions(budget.ID, transactions)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
-		responses = append(responses, ResultResponse{
-			Budget:              budget,
-			CreatedTransactions: createdTransactions,
+		responses = append(responses, resultResponse{
+			BudgetName:            budget.Name,
+			NewTransactions:       len(createdTransactions.DuplicateImportIDs),
+			DuplicateTransactions: len(createdTransactions.DuplicateImportIDs),
+			TotalTransactions:     len(createdTransactions.DuplicateImportIDs) + len(createdTransactions.DuplicateImportIDs),
 		})
 	}
 
@@ -83,22 +99,11 @@ func (c ApiCmd) run() error {
 	return nil
 }
 
-func (c *ApiCmd) output(responses []ResultResponse) {
+func (c *ApiCmd) output(responses []resultResponse) {
 	t := tabby.New()
-	t.AddHeader("Budget", "New", "Duplicated", "Total")
+	t.AddHeader("budget", "New", "Duplicated", "Total")
 	for _, response := range responses {
-		t.AddLine(response.Budget.Name, len(response.CreatedTransactions.TransactionIDs), len(response.CreatedTransactions.DuplicateImportIDs), len(response.CreatedTransactions.TransactionIDs)+len(response.CreatedTransactions.DuplicateImportIDs))
+		t.AddLine(response.BudgetName, response.NewTransactions, response.DuplicateTransactions, response.TotalTransactions)
 	}
 	t.Print()
-}
-
-type Budget struct {
-	ID       string
-	Name     string
-	Accounts []bank.Account
-}
-
-type ResultResponse struct {
-	Budget
-	*transaction.CreatedTransactions
 }
