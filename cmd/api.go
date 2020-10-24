@@ -88,9 +88,9 @@ func (c ApiCmd) run() error {
 
 		responses = append(responses, resultResponse{
 			BudgetName:            budget.Name,
-			NewTransactions:       len(createdTransactions.DuplicateImportIDs),
+			NewTransactions:       len(createdTransactions.TransactionIDs),
 			DuplicateTransactions: len(createdTransactions.DuplicateImportIDs),
-			TotalTransactions:     len(createdTransactions.DuplicateImportIDs) + len(createdTransactions.DuplicateImportIDs),
+			TotalTransactions:     len(createdTransactions.TransactionIDs) + len(createdTransactions.DuplicateImportIDs),
 		})
 	}
 
