@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-var errFailedToGetPath error = fmt.Errorf("failed to get path")
+var errFailedToGetDownloadPath error = fmt.Errorf("failed to get download path")
 
 func FilePathWalkDir(root, ext string) ([]string, error) {
 	var files []string
@@ -20,14 +20,14 @@ func FilePathWalkDir(root, ext string) ([]string, error) {
 	return files, err
 }
 
-func DownloadPath() (*string, error) {
+func DownloadPath() (string, error) {
 	usr, err := user.Current()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user for download path: %w", err)
+		return "", fmt.Errorf("failed to get user for download path: %w", err)
 	}
 	downloadDir := fmt.Sprintf("%s/%s", usr.HomeDir, "Downloads")
 	if _, err := os.Stat(downloadDir); os.IsNotExist(err) {
-		return nil, fmt.Errorf("failed to get download path: %w", errFailedToGetPath)
+		return "", errFailedToGetDownloadPath
 	}
-	return &downloadDir, nil
+	return downloadDir, nil
 }
