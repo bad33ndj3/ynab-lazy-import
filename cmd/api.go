@@ -1,107 +1,109 @@
 package cmd
 
 import (
-	"log"
-	"os"
+	"fmt"
+
+	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
+	"github.com/spf13/viper"
 
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/bank"
 	"github.com/cheynewallace/tabby"
-
-	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
-
-	"go.bmvs.io/ynab/api/transaction"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"go.bmvs.io/ynab"
+	"go.bmvs.io/ynab/api/transaction"
 )
 
-func init() {
-	rootCmd.AddCommand(apiCmd)
+// ApiCmd contains what the api command needs
+type ApiCmd struct {
+	ynabClient ynab.ClientServicer
+	path       string
+	budgets    []budget
 }
 
-type ResultResponse struct {
-	Budget
-	*transaction.CreatedTransactions
-}
-
-var apiCmd = &cobra.Command{
-	Use:   "api",
-	Short: "Push transactions to YNAB's api",
-	Run: func(cmd *cobra.Command, args []string) {
-		var env config
-
-		viper.AddConfigPath("$HOME/.config/ynab-lazy-import")
-		if err := viper.ReadInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				log.Fatal("no config file found at $HOME/.ynab")
-			} else {
-				log.Fatal(err)
+// NewAPICommand returns the API command as a cobra command
+func NewAPICommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "api",
+		Short: "Push transactions to YNAB's api",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var yaml config
+			viper.AddConfigPath(configPath)
+			if err := viper.ReadInConfig(); err != nil {
+				return err
 			}
-		}
 
-		err := viper.Unmarshal(&env)
-		if err != nil {
-			log.Fatalf("unable to decode into struct, %v", err)
-		}
+			if err := viper.Unmarshal(&yaml); err != nil {
+				return err
+			}
 
-		YNABClient := ynab.NewClient(env.Token)
-
-		if env.CustomPath == nil {
 			dir, err := dirutil.DownloadPath()
 			if err != nil {
-				log.Fatal(err)
-			}
-			env.CustomPath = dir
-		}
-
-		var responses []ResultResponse
-		for _, budget := range env.Budgets {
-			var transactions []transaction.PayloadTransaction
-			for _, account := range budget.Accounts {
-				t, err := bank.ReadDir(*env.CustomPath, account)
-				if err != nil {
-					log.Fatal(err)
-				}
-				transactions = append(transactions, t...)
+				return err
 			}
 
-			if len(transactions) < 1 {
-				return
-			}
-			createdTransactions, err := YNABClient.Transaction().CreateTransactions(budget.ID, transactions)
-			if err != nil {
-				log.Fatal(err)
+			ApiCmd := ApiCmd{
+				ynabClient: ynab.NewClient(yaml.Token),
+				path:       dir,
+				budgets:    yaml.Budgets,
 			}
 
-			responses = append(responses, ResultResponse{
-				Budget:              budget,
-				CreatedTransactions: createdTransactions,
-			})
-		}
-
-		output(responses)
-		os.Exit(0)
-	},
-}
-
-func output(responses []ResultResponse) {
-	t := tabby.New()
-	t.AddHeader("Budget", "New", "Duplicated", "Total")
-	for _, response := range responses {
-		t.AddLine(response.Budget.Name, len(response.CreatedTransactions.TransactionIDs), len(response.CreatedTransactions.DuplicateImportIDs), len(response.CreatedTransactions.TransactionIDs)+len(response.CreatedTransactions.DuplicateImportIDs))
+			return ApiCmd.run()
+		},
 	}
-	t.Print()
 }
 
-type config struct {
-	Token      string
-	Budgets    []Budget
-	CustomPath *string
-}
-
-type Budget struct {
+type budget struct {
 	ID       string
 	Name     string
 	Accounts []bank.Account
+}
+
+type resultResponse struct {
+	BudgetName            string
+	NewTransactions       int
+	DuplicateTransactions int
+	TotalTransactions     int
+}
+
+func (c ApiCmd) run() error {
+	var responses []resultResponse
+	for _, budget := range c.budgets {
+		var transactions []transaction.PayloadTransaction
+		for _, account := range budget.Accounts {
+			t, err := bank.ReadDir(c.path, account)
+			if err != nil {
+				return fmt.Errorf("failed extracting transactions: %w", err)
+			}
+			transactions = append(transactions, t...)
+		}
+
+		if len(transactions) < 1 {
+			continue
+		}
+
+		createdTransactions, err := c.ynabClient.Transaction().CreateTransactions(budget.ID, transactions)
+		if err != nil {
+			return err
+		}
+
+		responses = append(responses, resultResponse{
+			BudgetName:            budget.Name,
+			NewTransactions:       len(createdTransactions.DuplicateImportIDs),
+			DuplicateTransactions: len(createdTransactions.DuplicateImportIDs),
+			TotalTransactions:     len(createdTransactions.DuplicateImportIDs) + len(createdTransactions.DuplicateImportIDs),
+		})
+	}
+
+	c.output(responses)
+
+	return nil
+}
+
+func (c *ApiCmd) output(responses []resultResponse) {
+	t := tabby.New()
+	t.AddHeader("budget", "New", "Duplicated", "Total")
+	for _, response := range responses {
+		t.AddLine(response.BudgetName, response.NewTransactions, response.DuplicateTransactions, response.TotalTransactions)
+	}
+	t.Print()
 }
