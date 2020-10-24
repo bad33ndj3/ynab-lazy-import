@@ -20,7 +20,7 @@ func init() {
 	rootCmd.AddCommand(apiCmd)
 }
 
-type Results struct {
+type ResultResponse struct {
 	Budget
 	*transaction.CreatedTransactions
 }
@@ -55,7 +55,7 @@ var apiCmd = &cobra.Command{
 			env.CustomPath = dir
 		}
 
-		var res []Results
+		var responses []ResultResponse
 		for _, budget := range env.Budgets {
 			var transactions []transaction.PayloadTransaction
 			for _, account := range budget.Accounts {
@@ -74,21 +74,24 @@ var apiCmd = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			res = append(res, Results{
+			responses = append(responses, ResultResponse{
 				Budget:              budget,
 				CreatedTransactions: createdTransactions,
 			})
 		}
 
-		t := tabby.New()
-		t.AddHeader("Budget", "New", "Duplicated", "Total")
-		for _, line := range res {
-			t.AddLine(line.Budget.Name, len(line.CreatedTransactions.TransactionIDs), len(line.CreatedTransactions.DuplicateImportIDs), len(line.CreatedTransactions.TransactionIDs)+len(line.CreatedTransactions.DuplicateImportIDs))
-		}
-		t.Print()
-
+		output(responses)
 		os.Exit(0)
 	},
+}
+
+func output(responses []ResultResponse) {
+	t := tabby.New()
+	t.AddHeader("Budget", "New", "Duplicated", "Total")
+	for _, response := range responses {
+		t.AddLine(response.Budget.Name, len(response.CreatedTransactions.TransactionIDs), len(response.CreatedTransactions.DuplicateImportIDs), len(response.CreatedTransactions.TransactionIDs)+len(response.CreatedTransactions.DuplicateImportIDs))
+	}
+	t.Print()
 }
 
 type config struct {
