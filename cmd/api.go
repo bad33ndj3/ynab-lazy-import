@@ -27,7 +27,11 @@ func NewAPICommand() *cobra.Command {
 		Short: "Push transactions to YNAB's api",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var yaml config
-			viper.AddConfigPath(configPath)
+			path, err := dirutil.GetUserDirDirectory(configDirectory)
+			if err != nil {
+				return err
+			}
+			viper.AddConfigPath(path)
 			if err := viper.ReadInConfig(); err != nil {
 				return err
 			}

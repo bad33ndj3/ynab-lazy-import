@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const configPath = "$HOME/.config/ynab-lazy-import"
+const configDirectory = ".config/ynab-lazy-import"
 
 type config struct {
 	Token   string
