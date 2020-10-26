@@ -48,18 +48,17 @@ func (c InitCmd) run(token string) error {
 	configDir, err := dirutil.GetUserDirDirectory(configDirectory)
 	if err != nil {
 		return err
-	}
-	path := fmt.Sprintf("%s/config.yaml", configDir)
-	if _, err := os.Stat(path); err == nil {
-		return fmt.Errorf("config file already exists")
 	} else if os.IsNotExist(err) {
 		// create the config directory
 		err = os.Mkdir(configDir, os.ModeDir)
 		if err != nil {
 			return err
 		}
-	} else {
-		return err
+	}
+
+	path := fmt.Sprintf("%s/config.yaml", configDir)
+	if _, err := os.Stat(path); err == nil {
+		return fmt.Errorf("config file already exists")
 	}
 
 	budgetList, err := c.ynab.Budget().GetBudgets()
@@ -77,7 +76,7 @@ func (c InitCmd) run(token string) error {
 		}
 		var accounts []bank.Account
 		for _, a := range accountList {
-			if a.Type != account.TypeChecking {
+			if a.Type != account.TypeChecking || a.Closed {
 				continue
 			}
 			accounts = append(accounts, bank.Account{
