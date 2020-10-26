@@ -45,18 +45,18 @@ func NewInitCommand() (*cobra.Command, error) {
 }
 
 func (c InitCmd) run(token string) error {
-	configDir, err := dirutil.GetUserDirDirectory(configDirectory)
+	configPath, err := dirutil.GetUserDirDirectory(configDirectory)
 	if err != nil {
 		return err
 	} else if os.IsNotExist(err) {
 		// create the config directory
-		err = os.Mkdir(configDir, os.ModeDir)
+		err = os.MkdirAll(configPath, os.ModeDir)
 		if err != nil {
 			return err
 		}
 	}
 
-	path := fmt.Sprintf("%s/config.yaml", configDir)
+	path := fmt.Sprintf("%s/config.yaml", configPath)
 	if _, err := os.Stat(path); err == nil {
 		return fmt.Errorf("config file already exists")
 	}
