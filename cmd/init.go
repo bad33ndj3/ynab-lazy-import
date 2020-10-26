@@ -2,15 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"os/user"
-	"strings"
-
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/bank"
+	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
 	"github.com/spf13/cobra"
 	"go.bmvs.io/ynab"
 	"go.bmvs.io/ynab/api/account"
 	"gopkg.in/yaml.v2"
+	"os"
 )
 
 // InitCmd contains what the Init command needs
@@ -27,7 +25,7 @@ func NewInitCommand() (*cobra.Command, error) {
 		Use:   "init",
 		Short: "Create a config file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if _, err := os.Stat(configPath); err == nil {
+			if _, err := os.Stat(configDirectory); err == nil {
 				return errFileAlreadyExists
 			}
 
@@ -47,16 +45,19 @@ func NewInitCommand() (*cobra.Command, error) {
 }
 
 func (c InitCmd) run(token string) error {
-	usr, err := user.Current()
+	configDir, err := dirutil.GetUserDirDirectory(configDirectory)
 	if err != nil {
 		return err
 	}
-
-	path := strings.Replace(configPath, "$HOME", usr.HomeDir, 1) + "/config.yaml"
+	path := fmt.Sprintf("%s/config.yaml", configDir)
 	if _, err := os.Stat(path); err == nil {
 		return fmt.Errorf("config file already exists")
 	} else if os.IsNotExist(err) {
-		// path/to/whatever does *not* exist
+		// create the config directory
+		err = os.Mkdir(configDir, os.ModeDir)
+		if err != nil {
+			return err
+		}
 	} else {
 		return err
 	}
