@@ -16,3 +16,6 @@ reports/coverage.out:
 
 coverage:
 	go tool cover -html=reports/coverage.out
+
+lint:
+	golangci-lint run
