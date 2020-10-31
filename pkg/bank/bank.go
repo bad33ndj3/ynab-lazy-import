@@ -2,6 +2,7 @@ package bank
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -11,10 +12,13 @@ import (
 	"go.bmvs.io/ynab/api/transaction"
 )
 
+// ErrNoValidDateString is thrown when a date string is not valid for YNAB.
+var ErrNoValidDateString = fmt.Errorf("not a valid date string")
+
 type Bank interface {
 	ToYNAB(accountID string) ([]transaction.PayloadTransaction, error)
 	CorrectFile(path, iban string) bool
-	Seperator() rune
+	Separator() rune
 }
 
 type Account struct {
@@ -25,7 +29,7 @@ type Account struct {
 }
 
 func GetBank(bankType string) Bank {
-	if strings.ToLower(bankType) == "ing" {
+	if strings.EqualFold(bankType, "ing") {
 		return &INGLines{}
 	}
 
@@ -38,7 +42,7 @@ func ReadDir(path string, account Account) ([]transaction.PayloadTransaction, er
 		return nil, err
 	}
 
-	var transactions []transaction.PayloadTransaction
+	transactions := make([]transaction.PayloadTransaction, len(files))
 	for _, file := range files {
 		lines, err := Read(file, account)
 		if err != nil {
@@ -63,7 +67,7 @@ func Read(path string, account Account) ([]transaction.PayloadTransaction, error
 
 	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
 		r := csv.NewReader(in)
-		r.Comma = lines.Seperator()
+		r.Comma = lines.Separator()
 		return r // Allows use pipe as delimiter
 	})
 

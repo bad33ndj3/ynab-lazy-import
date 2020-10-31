@@ -97,34 +97,37 @@ func (t *INGTestSuite) TestToYNAB() {
 				AfBij:            "Bij",
 				BedragEUR:        "22,00",
 				Mutatiesoort:     "iDEAL",
-				Mededelingen:     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse id mauris at diam euismod maximus eget nec velit. Nulla eu scelerisque urna, ultricies varius nunc. Ut auctor velit id sodales sed.",
-				SaldoNaMutatie:   "20,00",
+				Mededelingen: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse id mauris at " +
+					"diam euismod maximus eget nec velit. Nulla eu scelerisque urna, ultricies varius nunc. Ut auctor " +
+					"velit id sodales sed.",
+				SaldoNaMutatie: "20,00",
 			},
 			AccountID: "test_accountid",
 			PayeeName: "Shopping",
-			Memo:      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse id mauris at diam euismod maximus eget nec velit. Nulla eu scelerisque urna, ultricies varius nunc. Ut auctor velit id sodales",
+			Memo: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse id mauris at diam euismod" +
+				" maximus eget nec velit. Nulla eu scelerisque urna, ultricies varius nunc. Ut auctor velit id sodales",
 			FlagColor: transaction.FlagColorGreen,
 			Date:      time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC),
 			ImportID:  "YNAB:2200:2020-01-02:1",
 			Amount:    22000,
 		},
 	}
-	for _, test := range tests {
+	for index := range tests {
 		expectedTrans := &transaction.PayloadTransaction{
-			AccountID: test.AccountID,
+			AccountID: tests[index].AccountID,
 			Date: api.Date{
-				Time: test.Date,
+				Time: tests[index].Date,
 			},
-			Amount:    test.Amount,
+			Amount:    tests[index].Amount,
 			Cleared:   transaction.ClearingStatusCleared,
 			Approved:  false,
-			PayeeName: &test.PayeeName,
-			Memo:      &test.Memo,
-			FlagColor: &test.FlagColor,
-			ImportID:  &test.ImportID,
+			PayeeName: &tests[index].PayeeName,
+			Memo:      &tests[index].Memo,
+			FlagColor: &tests[index].FlagColor,
+			ImportID:  &tests[index].ImportID,
 		}
 
-		trans, err := test.Line.toYNAB(test.AccountID)
+		trans, err := tests[index].Line.toYNAB(tests[index].AccountID)
 		t.Require().NoError(err)
 		t.Require().Equal(expectedTrans, trans)
 	}

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// FilePathWalkDir get all files with a specified extension from a directory
+// FilePathWalkDir get all files with a specified extension from a directory.
 func FilePathWalkDir(root, ext string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -18,7 +18,7 @@ func FilePathWalkDir(root, ext string) ([]string, error) {
 	return files, err
 }
 
-// DownloadPath gets the default download path of the current user
+// DownloadPath gets the default download path of the current user.
 func DownloadPath() (string, error) {
 	dir, err := GetUserDirDirectory("Downloads")
 	if err != nil {
@@ -27,7 +27,7 @@ func DownloadPath() (string, error) {
 	return dir, nil
 }
 
-// GetUserDirDirectory gets an extension from the current users directory if it exists
+// GetUserDirDirectory gets an extension from the current users directory if it exists.
 func GetUserDirDirectory(directory string) (string, error) {
 	userDir, err := os.UserHomeDir()
 	if err != nil {
