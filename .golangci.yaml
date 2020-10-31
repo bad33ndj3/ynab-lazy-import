@@ -3,7 +3,7 @@ linters-settings:
     list-type: blacklist
     packages:
       - github.com/sirupsen/logrus
-      - github.com/davecgh/go-spew/spew
+      - github.com/davecgh/go-spew
   dupl:
     threshold: 100
   funlen:
@@ -52,7 +52,6 @@ linters:
     - errcheck
     - exhaustive
     - funlen
-    - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
@@ -83,7 +82,6 @@ linters:
     - varcheck
     - whitespace
     - asciicheck
-    - gochecknoglobals
     - gocognit
     - godot
     - godox
@@ -91,5 +89,9 @@ linters:
     - maligned
     - nestif
     - prealloc
-    - testpackage
-    - wsl
+
+issues:
+  exclude-rules:
+    - path: _test.go
+      linters:
+        - funlen

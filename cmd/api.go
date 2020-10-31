@@ -13,14 +13,14 @@ import (
 	"go.bmvs.io/ynab/api/transaction"
 )
 
-// ApiCmd contains what the api command needs
-type ApiCmd struct {
+// APICmd contains what the api command needs.
+type APICmd struct {
 	ynabClient ynab.ClientServicer
 	path       string
 	budgets    []budget
 }
 
-// NewAPICommand returns the API command as a cobra command
+// NewAPICommand returns the API command as a cobra command.
 func NewAPICommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "api",
@@ -45,13 +45,13 @@ func NewAPICommand() *cobra.Command {
 				return err
 			}
 
-			ApiCmd := ApiCmd{
+			APICmd := APICmd{
 				ynabClient: ynab.NewClient(yaml.Token),
 				path:       dir,
 				budgets:    yaml.Budgets,
 			}
 
-			return ApiCmd.run()
+			return APICmd.run()
 		},
 	}
 }
@@ -69,8 +69,8 @@ type resultResponse struct {
 	TotalTransactions     int
 }
 
-func (c ApiCmd) run() error {
-	var responses []resultResponse
+func (c APICmd) run() error {
+	responses := make([]resultResponse, len(c.budgets))
 	for _, budget := range c.budgets {
 		var transactions []transaction.PayloadTransaction
 		for _, account := range budget.Accounts {
@@ -78,6 +78,7 @@ func (c ApiCmd) run() error {
 			if err != nil {
 				return fmt.Errorf("failed extracting transactions: %w", err)
 			}
+
 			transactions = append(transactions, t...)
 		}
 
@@ -103,11 +104,12 @@ func (c ApiCmd) run() error {
 	return nil
 }
 
-func (c *ApiCmd) output(responses []resultResponse) {
+func (c *APICmd) output(responses []resultResponse) {
 	t := tabby.New()
 	t.AddHeader("budget", "New", "Duplicated", "Total")
 	for _, response := range responses {
 		t.AddLine(response.BudgetName, response.NewTransactions, response.DuplicateTransactions, response.TotalTransactions)
 	}
+
 	t.Print()
 }

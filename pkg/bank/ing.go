@@ -9,9 +9,14 @@ import (
 	"go.bmvs.io/ynab/api/transaction"
 )
 
+const (
+	centToMicroMultiplier = 10
+	ynabMaxMemoLength     = 195
+)
+
 type INGLines []ing
 
-func (i INGLines) Seperator() rune {
+func (i INGLines) Separator() rune {
 	return ';'
 }
 
@@ -20,9 +25,9 @@ func (i INGLines) CorrectFile(path, iban string) bool {
 }
 
 func (i INGLines) ToYNAB(accountID string) ([]transaction.PayloadTransaction, error) {
-	var lines []transaction.PayloadTransaction
-	for _, line := range i {
-		l, err := line.toYNAB(accountID)
+	lines := make([]transaction.PayloadTransaction, len(i))
+	for index := range i {
+		l, err := i[index].toYNAB(accountID)
 		if err != nil {
 			return nil, err
 		}
@@ -46,7 +51,7 @@ type ing struct {
 	Tag              string `csv:"Tag"`
 }
 
-func (e ing) toYNAB(accountID string) (*transaction.PayloadTransaction, error) {
+func (e *ing) toYNAB(accountID string) (*transaction.PayloadTransaction, error) {
 	trans := transaction.PayloadTransaction{
 		AccountID: accountID,
 		Cleared:   transaction.ClearingStatusCleared,
@@ -55,7 +60,7 @@ func (e ing) toYNAB(accountID string) (*transaction.PayloadTransaction, error) {
 	}
 	color := transaction.FlagColorGreen
 	trans.FlagColor = &color
-	if len(e.Mededelingen) > 195 {
+	if len(e.Mededelingen) > ynabMaxMemoLength {
 		memo := e.Mededelingen[:195]
 		trans.Memo = &memo
 	} else {
@@ -67,13 +72,14 @@ func (e ing) toYNAB(accountID string) (*transaction.PayloadTransaction, error) {
 	}
 
 	if e.AfBij == "Af" {
-		amount = amount * -1
+		amount *= -1
 	}
-	trans.Amount = amount * 10
+	trans.Amount = amount * centToMicroMultiplier
 
 	dateString := strconv.Itoa(e.Datum)
-	if len(dateString) != 8 {
-		return nil, fmt.Errorf("not a valid date string")
+	const dateStringLen = 8
+	if len(dateString) != dateStringLen {
+		return nil, ErrNoValidDateString
 	}
 	year := dateString[:4]
 	month := dateString[4:6]

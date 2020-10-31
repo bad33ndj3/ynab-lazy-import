@@ -2,23 +2,24 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/bank"
 	"github.com/bad33ndj3/ynab-lazy-import/pkg/dirutil"
 	"github.com/spf13/cobra"
 	"go.bmvs.io/ynab"
 	"go.bmvs.io/ynab/api/account"
 	"gopkg.in/yaml.v2"
-	"os"
 )
 
-// InitCmd contains what the Init command needs
+// InitCmd contains what the Init command needs.
 type InitCmd struct {
 	ynab ynab.ClientServicer
 }
 
 var errFileAlreadyExists = fmt.Errorf("config file already exists")
 
-// NewInitCommand creates the config file
+// NewInitCommand creates the config file.
 func NewInitCommand() (*cobra.Command, error) {
 	var token string
 	initCmd := &cobra.Command{
@@ -29,11 +30,11 @@ func NewInitCommand() (*cobra.Command, error) {
 				return errFileAlreadyExists
 			}
 
-			ApiCmd := InitCmd{
+			APICmd := InitCmd{
 				ynab: ynab.NewClient(token),
 			}
 
-			return ApiCmd.run(token)
+			return APICmd.run(token)
 		},
 	}
 	initCmd.Flags().StringVarP(&token, "token", "t", "", "YNAB Token (required)")
@@ -58,7 +59,7 @@ func (c InitCmd) run(token string) error {
 
 	path := fmt.Sprintf("%s/config.yaml", configPath)
 	if _, err := os.Stat(path); err == nil {
-		return fmt.Errorf("config file already exists")
+		return fmt.Errorf("config file already exists: %w", err)
 	}
 
 	budgetList, err := c.ynab.Budget().GetBudgets()

@@ -5,7 +5,8 @@ build:
 	go build -o $(BINARY_NAME) -v
 
 fmt:
-	@gofumpt -w --extra .
+	GO111MODULE=off go get mvdan.cc/gofumpt
+	gofumpt -s -w .
 
 test: reports/coverage.out
 	go test -v -coverprofile=reports/coverage.out ./...
