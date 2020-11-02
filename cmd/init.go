@@ -47,11 +47,11 @@ func NewInitCommand() (*cobra.Command, error) {
 
 func (c InitCmd) run(token string) error {
 	configPath, err := dirutil.GetUserDirDirectory(configDirectory)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	} else if os.IsNotExist(err) {
 		// create the config directory
-		err = os.MkdirAll(configPath, os.ModeDir)
+		err = os.MkdirAll(configPath, os.ModePerm)
 		if err != nil {
 			return err
 		}
