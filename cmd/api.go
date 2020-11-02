@@ -71,12 +71,14 @@ type resultResponse struct {
 
 var errNoValidIban error = fmt.Errorf("iban is not valid")
 
+const minIbanLength = 14
+
 func (c APICmd) run() error {
 	responses := make([]resultResponse, len(c.budgets))
 	for _, budget := range c.budgets {
 		var transactions []transaction.PayloadTransaction
 		for _, account := range budget.Accounts {
-			if len(account.Iban) < 14 {
+			if len(account.Iban) < minIbanLength {
 				return errNoValidIban
 			}
 			t, err := bank.ReadDir(c.path, account)
