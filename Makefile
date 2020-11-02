@@ -19,4 +19,4 @@ coverage:
 	go tool cover -html=reports/coverage.out
 
 lint:
-	golangci-lint run
+	CGO_ENABLED=0 golangci-lint run
