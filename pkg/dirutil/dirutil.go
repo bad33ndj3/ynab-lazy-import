@@ -34,10 +34,10 @@ func GetUserDirDirectory(directory string) (string, error) {
 		return "", err
 	}
 
-	downloadDir := fmt.Sprintf("%s/%s", userDir, directory)
-	if _, err := os.Stat(downloadDir); err != nil {
-		return "", err
+	dir := fmt.Sprintf("%s/%s", userDir, directory)
+	if _, err := os.Stat(dir); err != nil {
+		return dir, err
 	}
 
-	return downloadDir, nil
+	return dir, nil
 }
