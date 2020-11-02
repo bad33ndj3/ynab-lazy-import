@@ -11,16 +11,24 @@ This way the upload will behave just like a CSV Upload to YNAB.
 
 This approach is used because ING doesn't offer a consumer based API.
 
-### usage
+### Usage
+Install package
 
-Fill in the env file
+    $ go get -d github.com/bad33ndj3/ynab-lazy-import && go install github.com/bad33ndj3/ynab-lazy-import
 
-    $ cp .env.example .env
+Initialize the config file and fill in the missing fields
+
+    $ ynab-lazy-import init -t <access token>
     
-Run the tool
+Scrape the Downloads folder and upload matching csv's
 
-    $ make run
+    $ ynab-lazy-import api
     
 ### Supported banks
 
 Currently, this only supports the Dutch ING Bank exports.
+
+### Supported platforms
+tested on:
+- mac
+- ubuntu
