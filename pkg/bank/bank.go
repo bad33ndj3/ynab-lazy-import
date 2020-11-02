@@ -28,12 +28,14 @@ type Account struct {
 	Iban    string
 }
 
-func GetBank(bankType string) Bank {
+var errNoValidBankType error = fmt.Errorf("failed getting valid bank type")
+
+func GetBank(bankType string) (Bank, error) {
 	if strings.EqualFold(bankType, "ing") {
-		return &INGLines{}
+		return &INGLines{}, nil
 	}
 
-	return &INGLines{}
+	return &INGLines{}, errNoValidBankType
 }
 
 func ReadDir(path string, account Account) ([]transaction.PayloadTransaction, error) {
@@ -55,7 +57,10 @@ func ReadDir(path string, account Account) ([]transaction.PayloadTransaction, er
 }
 
 func Read(path string, account Account) ([]transaction.PayloadTransaction, error) {
-	lines := GetBank(account.Bank)
+	lines, err := GetBank(account.Bank)
+	if err != nil {
+		return nil, err
+	}
 	if !lines.CorrectFile(path, account.Iban) {
 		return nil, nil
 	}
