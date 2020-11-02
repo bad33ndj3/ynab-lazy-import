@@ -69,11 +69,16 @@ type resultResponse struct {
 	TotalTransactions     int
 }
 
+var errNoValidIban error = fmt.Errorf("iban is not valid")
+
 func (c APICmd) run() error {
 	responses := make([]resultResponse, len(c.budgets))
 	for _, budget := range c.budgets {
 		var transactions []transaction.PayloadTransaction
 		for _, account := range budget.Accounts {
+			if len(account.Iban) < 14 {
+				return errNoValidIban
+			}
 			t, err := bank.ReadDir(c.path, account)
 			if err != nil {
 				return fmt.Errorf("failed extracting transactions: %w", err)
