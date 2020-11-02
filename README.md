@@ -2,9 +2,7 @@
 
 ### What does it do
 
-ynab-lazy-import will go to your download directory and try to find csv exports from ING Bank
-ing-to-ynab will go to your download directory and try to find csv exports from ING Bank
-It can find these because they have a filename that matches your IBAN.
+ynab-lazy-import will go to your download directory and try to find csv exports from your bank
 
 It will simulate a csv import to YNAB by reading these files and uploading them with the `csv Imported` tag.
 This way the upload will behave just like a CSV Upload to YNAB.
