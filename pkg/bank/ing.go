@@ -25,7 +25,7 @@ func (i INGLines) CorrectFile(path, iban string) bool {
 }
 
 func (i INGLines) ToYNAB(accountID string) ([]transaction.PayloadTransaction, error) {
-	lines := make([]transaction.PayloadTransaction, len(i))
+	var lines []transaction.PayloadTransaction
 	for index := range i {
 		l, err := i[index].toYNAB(accountID)
 		if err != nil {
@@ -33,7 +33,6 @@ func (i INGLines) ToYNAB(accountID string) ([]transaction.PayloadTransaction, er
 		}
 		lines = append(lines, *l)
 	}
-
 	return lines, nil
 }
 

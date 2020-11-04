@@ -39,7 +39,6 @@ func NewAPICommand() *cobra.Command {
 			if err := viper.Unmarshal(&yaml); err != nil {
 				return err
 			}
-
 			dir, err := dirutil.DownloadPath()
 			if err != nil {
 				return err
@@ -74,7 +73,7 @@ var errNoValidIban error = fmt.Errorf("iban is not valid")
 const minIbanLength = 14
 
 func (c APICmd) run() error {
-	responses := make([]resultResponse, len(c.budgets))
+	var responses []resultResponse
 	for _, budget := range c.budgets {
 		var transactions []transaction.PayloadTransaction
 		for _, account := range budget.Accounts {
@@ -85,11 +84,11 @@ func (c APICmd) run() error {
 			if err != nil {
 				return fmt.Errorf("failed extracting transactions: %w", err)
 			}
-
 			transactions = append(transactions, t...)
 		}
 
-		if len(transactions) < 1 {
+		if len(transactions) == 0 {
+			responses = append(responses, resultResponse{BudgetName: budget.Name})
 			continue
 		}
 
