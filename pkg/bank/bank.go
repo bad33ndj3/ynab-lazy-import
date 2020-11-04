@@ -44,13 +44,15 @@ func ReadDir(path string, account Account) ([]transaction.PayloadTransaction, er
 		return nil, err
 	}
 
-	transactions := make([]transaction.PayloadTransaction, len(files))
+	var transactions []transaction.PayloadTransaction
 	for _, file := range files {
 		lines, err := Read(file, account)
 		if err != nil {
 			return nil, err
 		}
-		transactions = append(transactions, lines...)
+		for index := range lines {
+			transactions = append(transactions, lines[index])
+		}
 	}
 
 	return transactions, nil
