@@ -10,9 +10,9 @@ This way the upload will behave just like a CSV Upload to YNAB.
 This approach is used because ING doesn't offer a consumer based API.
 
 ### Usage
-Install package
+Install package trough [gobinaries.com](https://gobinaries.com/)
 
-    $ go get -d github.com/bad33ndj3/ynab-lazy-import && go install github.com/bad33ndj3/ynab-lazy-import
+    $ curl -sf https://gobinaries.com/bad33ndj3/ynab-lazy-import | sh
 
 Initialize the config file and fill in the missing fields
 
