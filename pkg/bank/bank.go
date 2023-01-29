@@ -34,6 +34,9 @@ func GetBank(bankType string) (Bank, error) {
 	if strings.EqualFold(bankType, "ing") {
 		return &INGLines{}, nil
 	}
+	if strings.EqualFold(bankType, "bunq") {
+		return &BunqLines{}, nil
+	}
 
 	return &INGLines{}, errNoValidBankType
 }
